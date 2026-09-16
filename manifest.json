@@ -1,0 +1,10 @@
+{
+  "name": "FATMA BAKR GLOW SPA",
+  "short_name": "Glow Spa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07070a",
+  "theme_color": "#ec258d",
+  "lang": "ar",
+  "dir": "rtl"
+}

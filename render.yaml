@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: fatma-bakr-glow-spa
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health

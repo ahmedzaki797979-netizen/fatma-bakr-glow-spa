@@ -1,0 +1,13 @@
+WhatsApp Business Template
+Name: appointment_reminder
+Language: ar
+Body example:
+أهلاً {{1}} 🌸
+نذكرك بموعدك في FATMA BAKR GLOW SPA.
+الخدمة: {{2}}
+التاريخ: {{3}}
+الساعة: {{4}}
+لو حابة تأكدي أو تغيّري الموعد، تواصلي معنا.
+
+The four variables are sent as: name, service, date, time.
+The template must be approved by Meta before proactive messages can be sent.
