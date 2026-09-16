@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fatma-bakr-glow-spa",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-09-16",
+  "assets": {
+    "directory": "./assets"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SPA_KV",
+      "id": "REPLACE_WITH_KV_NAMESPACE_ID"
+    }
+  ],
+  "triggers": {
+    "crons": ["* * * * *"]
+  }
+}
