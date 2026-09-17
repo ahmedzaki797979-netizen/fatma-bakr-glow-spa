@@ -56,8 +56,36 @@
 <script>
 const K='glow_spa_complete_v4',def=[['ليزر للجسم','BODY CARE','👩‍🦰'],['المساج','MASSAGE','💆‍♀️'],['الحمام المغربي','HAMMAM MAROCAIN','🕌'],['الاسترخاء والتجديد','RELAX & RENEW','☕'],['ليزر الوجه','FACE LASER','✨'],['باديكير','PEDICURE','💅']];
 let S=JSON.parse(localStorage.getItem(K)||'null')||{appointments:[],services:def.map((x,i)=>({id:i+1,name:x[0],en:x[1],icon:x[2],price:0}))};
+
+async function loadCloud(){
+  try{
+    const r=await fetch('/api/data');
+    const j=await r.json();
+
+    if(j.ok && j.data && Array.isArray(j.data.appointments)){
+      S=j.data;
+      localStorage.setItem(K,JSON.stringify(S));
+    }else{
+      await save();
+    }
+  }catch(e){
+    console.log('Cloud load failed',e);
+  }
+}
 const iso=()=>new Date().toISOString().slice(0,10),add=(s,n)=>{let d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)},fmt=d=>new Intl.DateTimeFormat('ar-EG',{day:'numeric',month:'long',year:'numeric'}).format(new Date(d+'T12:00:00')),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-function save(){localStorage.setItem(K,JSON.stringify(S))}function toast(t){let e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2400)}
+async function save(){
+  localStorage.setItem(K,JSON.stringify(S));
+
+  try{
+    await fetch('/api/data',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(S)
+    });
+  }catch(e){
+    console.log('Cloud save failed',e);
+  }
+}function toast(t){let e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2400)}
 function go(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');render();scrollTo({top:0,behavior:'smooth'})}
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 function render(){let t=iso(),a=S.appointments;document.getElementById('s1').textContent=a.filter(x=>x.date===t).length;document.getElementById('s2').textContent=a.filter(x=>x.date>t&&x.date<=add(t,30)).length;document.getElementById('s3').textContent=a.filter(x=>x.nextDate===t).length;document.getElementById('s4').textContent=new Set(a.map(x=>x.phone)).size;document.getElementById('s5').textContent=a.reduce((q,x)=>q+(+x.price||0),0).toLocaleString('ar-EG');
@@ -84,5 +112,11 @@ let gc=localStorage.getItem('glowColor');if(gc)color(gc);
 function notifyPermission(){if(!('Notification'in window))return toast('الإشعارات غير مدعومة');Notification.requestPermission().then(x=>toast(x==='granted'?'تم تفعيل الإشعارات':'لم يتم التفعيل'))}
 function exportData(){let b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='glow-spa-backup.json';a.click()}
 document.getElementById('imp').onchange=e=>{let r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);save();render();toast('تم الاستيراد')}catch(_){toast('ملف غير صالح')}};r.readAsText(e.target.files[0])};
-prepare();render();
+async function init(){
+  await loadCloud();
+  prepare();
+  render();
+}
+
+init();
 </script></body></html>
