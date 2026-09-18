@@ -3,9 +3,10 @@
   "name": "fatma-bakr-glow-spa",
   "main": "src/worker.js",
   "compatibility_date": "2026-09-16",
-  "assets": {
-    "directory": "./assets"
-  },
+ "assets": {
+  "directory": "./assets",
+  "run_worker_first": true
+},
   "kv_namespaces": [
     {
       "binding": "SPA_KV",
