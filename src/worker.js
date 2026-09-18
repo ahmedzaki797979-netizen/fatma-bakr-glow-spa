@@ -1,13 +1,169 @@
 const DATA_KEY = "spa_data";
+const SESSION_PREFIX = "spa_session:";
+const SESSION_TTL = 60 * 60 * 24 * 7; // 7 days
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "access-control-allow-origin": "*",
-      "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "access-control-allow-headers": "Content-Type"
+      "cache-control": "no-store"
+    }
+  });
+}
+
+function getCookie(request, name) {
+  const cookie = request.headers.get("Cookie") || "";
+  const parts = cookie.split(";");
+
+  for (const part of parts) {
+    const [key, ...value] = part.trim().split("=");
+    if (key === name) {
+      return value.join("=");
+    }
+  }
+
+  return null;
+}
+
+async function isAuthenticated(request, env) {
+  const sessionId = getCookie(request, "SPA_SESSION");
+
+  if (!sessionId || !env.SPA_KV) {
+    return false;
+  }
+
+  const session = await env.SPA_KV.get(
+    SESSION_PREFIX + sessionId
+  );
+
+  return !!session;
+}
+
+function loginPage(error = "") {
+  return new Response(`
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FATMA BAKR GLOW SPA</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #f7eee8, #ead8ce);
+}
+
+.box {
+  width: min(92%, 420px);
+  background: rgba(255,255,255,.96);
+  border-radius: 24px;
+  padding: 35px 28px;
+  box-shadow: 0 15px 45px rgba(0,0,0,.15);
+  text-align: center;
+}
+
+.logo {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 18px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 25px;
+}
+
+.subtitle {
+  color: #777;
+  margin-bottom: 25px;
+}
+
+input {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 17px;
+  outline: none;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  border: 0;
+  border-radius: 12px;
+  background: #222;
+  color: white;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.error {
+  color: #c62828;
+  margin-bottom: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+  <img
+    class="logo"
+    src="/logo.jpg"
+    onerror="this.style.display='none'"
+  >
+
+  <h1>FATMA BAKR GLOW SPA</h1>
+
+  <div class="subtitle">
+    تسجيل الدخول إلى نظام إدارة السبا
+  </div>
+
+  ${error ? `<div class="error">${error}</div>` : ""}
+
+  <form method="POST" action="/api/login">
+
+    <input
+      type="password"
+      name="password"
+      placeholder="أدخل كلمة المرور"
+      autocomplete="current-password"
+      required
+      autofocus
+    >
+
+    <button type="submit">
+      دخول
+    </button>
+
+  </form>
+
+</div>
+
+</body>
+</html>
+`, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store"
     }
   });
 }
@@ -18,126 +174,122 @@ export default {
 
     const url = new URL(request.url);
 
-    // CORS
+    // ==============================
+    // CORS / OPTIONS
+    // ==============================
+
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
         headers: {
-          "access-control-allow-origin": "*",
-          "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-          "access-control-allow-headers": "Content-Type"
+          "access-control-allow-origin": url.origin,
+          "access-control-allow-methods":
+            "GET, POST, PUT, DELETE, OPTIONS",
+          "access-control-allow-headers":
+            "Content-Type"
         }
       });
     }
 
-    // Health check
-    if (url.pathname === "/api/health") {
-      return json({
-        ok: true,
-        service: "FATMA BAKR GLOW SPA",
-        kv: !!env.SPA_KV,
-        whatsapp: !!env.WHATSAPP_ACCESS_TOKEN
+    // ==============================
+    // LOGIN
+    // ==============================
+
+    if (
+      url.pathname === "/api/login" &&
+      request.method === "POST"
+    ) {
+
+      if (!env.SPA_PASSWORD) {
+        return json({
+          ok: false,
+          error: "SPA_PASSWORD secret is missing"
+        }, 500);
+      }
+
+      let password = "";
+
+      try {
+
+        const contentType =
+          request.headers.get("content-type") || "";
+
+        if (contentType.includes("application/json")) {
+
+          const body = await request.json();
+          password = String(body.password || "");
+
+        } else {
+
+          const form = await request.formData();
+          password = String(form.get("password") || "");
+
+        }
+
+      } catch (error) {
+
+        return loginPage("بيانات الدخول غير صحيحة");
+
+      }
+
+      if (password !== env.SPA_PASSWORD) {
+        return loginPage("كلمة المرور غير صحيحة");
+      }
+
+      const sessionId = crypto.randomUUID();
+
+      await env.SPA_KV.put(
+        SESSION_PREFIX + sessionId,
+        JSON.stringify({
+          createdAt: Date.now()
+        }),
+        {
+          expirationTtl: SESSION_TTL
+        }
+      );
+
+      return new Response(null, {
+        status: 302,
+        headers: {
+          "Location": "/",
+          "Set-Cookie":
+            `SPA_SESSION=${sessionId}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_TTL}`
+        }
       });
     }
 
     // ==============================
-    // GET ALL SPA DATA
+    // LOGOUT
     // ==============================
-    if (url.pathname === "/api/data" && request.method === "GET") {
 
-      if (!env.SPA_KV) {
-        return json({
-          ok: false,
-          error: "SPA_KV binding is missing"
-        }, 500);
-      }
-
-      const saved = await env.SPA_KV.get(DATA_KEY);
-
-      if (!saved) {
-        return json({
-          ok: true,
-          data: {}
-        });
-      }
-
-      try {
-        return json({
-          ok: true,
-          data: JSON.parse(saved)
-        });
-      } catch (error) {
-        return json({
-          ok: false,
-          error: "Stored data is invalid"
-        }, 500);
-      }
-    }
-
-    // ==============================
-    // SAVE ALL SPA DATA
-    // ==============================
     if (
-      url.pathname === "/api/data" &&
-      (request.method === "POST" || request.method === "PUT")
+      url.pathname === "/api/logout" &&
+      request.method === "POST"
     ) {
 
-      if (!env.SPA_KV) {
-        return json({
-          ok: false,
-          error: "SPA_KV binding is missing"
-        }, 500);
-      }
+      const sessionId =
+        getCookie(request, "SPA_SESSION");
 
-      try {
-
-        const body = await request.json();
-
-        await env.SPA_KV.put(
-          DATA_KEY,
-          JSON.stringify(body)
+      if (sessionId && env.SPA_KV) {
+        await env.SPA_KV.delete(
+          SESSION_PREFIX + sessionId
         );
-
-        return json({
-          ok: true,
-          saved: true
-        });
-
-      } catch (error) {
-
-        return json({
-          ok: false,
-          error: "Could not save data"
-        }, 400);
-      }
-    }
-
-    // ==============================
-    // DELETE ALL SPA DATA
-    // ==============================
-    if (
-      url.pathname === "/api/data" &&
-      request.method === "DELETE"
-    ) {
-
-      if (!env.SPA_KV) {
-        return json({
-          ok: false,
-          error: "SPA_KV binding is missing"
-        }, 500);
       }
 
-      await env.SPA_KV.delete(DATA_KEY);
-
-      return json({
-        ok: true,
-        deleted: true
+      return new Response(null, {
+        status: 302,
+        headers: {
+          "Location": "/",
+          "Set-Cookie":
+            "SPA_SESSION=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0"
+        }
       });
     }
 
     // ==============================
     // WHATSAPP WEBHOOK VERIFICATION
     // ==============================
+
     if (
       url.pathname === "/webhook" &&
       request.method === "GET"
@@ -172,6 +324,7 @@ export default {
     // ==============================
     // WHATSAPP WEBHOOK RECEIVER
     // ==============================
+
     if (
       url.pathname === "/webhook" &&
       request.method === "POST"
@@ -190,8 +343,134 @@ export default {
     }
 
     // ==============================
+    // HEALTH CHECK
+    // ==============================
+
+    if (url.pathname === "/api/health") {
+
+      return json({
+        ok: true,
+        service: "FATMA BAKR GLOW SPA",
+        kv: !!env.SPA_KV,
+        whatsapp: !!env.WHATSAPP_ACCESS_TOKEN
+      });
+    }
+
+    // ==============================
+    // PROTECT SPA + DATA API
+    // ==============================
+
+    const authenticated =
+      await isAuthenticated(request, env);
+
+    // ==============================
+    // DATA API
+    // ==============================
+
+    if (url.pathname === "/api/data") {
+
+      if (!authenticated) {
+        return json({
+          ok: false,
+          error: "Unauthorized"
+        }, 401);
+      }
+
+      if (!env.SPA_KV) {
+        return json({
+          ok: false,
+          error: "SPA_KV binding is missing"
+        }, 500);
+      }
+
+      // GET DATA
+      if (request.method === "GET") {
+
+        const saved =
+          await env.SPA_KV.get(DATA_KEY);
+
+        if (!saved) {
+          return json({
+            ok: true,
+            data: {}
+          });
+        }
+
+        try {
+
+          return json({
+            ok: true,
+            data: JSON.parse(saved)
+          });
+
+        } catch (error) {
+
+          return json({
+            ok: false,
+            error: "Stored data is invalid"
+          }, 500);
+        }
+      }
+
+      // SAVE DATA
+      if (
+        request.method === "POST" ||
+        request.method === "PUT"
+      ) {
+
+        try {
+
+          const body =
+            await request.json();
+
+          await env.SPA_KV.put(
+            DATA_KEY,
+            JSON.stringify(body)
+          );
+
+          return json({
+            ok: true,
+            saved: true
+          });
+
+        } catch (error) {
+
+          return json({
+            ok: false,
+            error: "Could not save data"
+          }, 400);
+        }
+      }
+
+      // DELETE DATA
+      if (request.method === "DELETE") {
+
+        await env.SPA_KV.delete(DATA_KEY);
+
+        return json({
+          ok: true,
+          deleted: true
+        });
+      }
+
+      return json({
+        ok: false,
+        error: "Method not allowed"
+      }, 405);
+    }
+
+    // ==============================
+    // PROTECT WEBSITE
+    // ==============================
+
+    if (!authenticated) {
+      return loginPage();
+    }
+
+    // ==============================
     // SERVE SPA WEBSITE
     // ==============================
+
     if (env.ASSETS) {
       return env.ASSETS.fetch(request);
     }
@@ -210,14 +489,13 @@ export default {
   // ==============================
   // CLOUDFLARE CRON
   // ==============================
+
   async scheduled(event, env, ctx) {
 
     console.log(
       "FATMA BAKR GLOW SPA reminder worker running"
     );
 
-    // Reminder system will be connected here
-    // after the database synchronization is completed.
+    // Reminder system will be connected here.
   }
-
 };
