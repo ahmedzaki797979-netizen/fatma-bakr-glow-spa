@@ -490,12 +490,242 @@ export default {
   // CLOUDFLARE CRON
   // ==============================
 
-  async scheduled(event, env, ctx) {
+ async scheduled(event, env, ctx) {
+  console.log("FATMA BAKR GLOW SPA reminder worker running");
+
+  if (!env.SPA_KV) {
+    console.log("SPA_KV is missing");
+    return;
+  }
+
+  if (!env.WHATSAPP_ACCESS_TOKEN || !env.WHATSAPP_PHONE_NUMBER_ID) {
+    console.log("WhatsApp credentials are missing");
+    return;
+  }
+
+  // Read all bookings
+  const saved = await env.SPA_KV.get(DATA_KEY);
+
+  if (!saved) {
+    console.log("No spa data found");
+    return;
+  }
+
+  const data = JSON.parse(saved);
+  const appointments = Array.isArray(data.appointments)
+    ? data.appointments
+    : [];
+
+  if (!appointments.length) {
+    console.log("No appointments found");
+    return;
+  }
+
+  // Egypt local date/time
+  const now = new Date();
+
+  const cairoParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Africa/Cairo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23"
+  }).formatToParts(now);
+
+  const getPart = (name) =>
+    cairoParts.find(x => x.type === name)?.value || "";
+
+  const today =
+    `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
+
+  const currentHour = Number(getPart("hour"));
+  const currentMinute = Number(getPart("minute"));
+
+  // Send WhatsApp template
+  async function sendWhatsApp(appointment) {
+    let phone = String(appointment.phone || "").replace(/\D/g, "");
+
+    // Egypt numbers: 01xxxxxxxxx -> 201xxxxxxxxx
+    if (phone.startsWith("01") && phone.length === 11) {
+      phone = "2" + phone;
+    }
+
+    if (!phone) {
+      console.log("No phone for appointment:", appointment.id);
+      return false;
+    }
+
+    const url =
+      `https://graph.facebook.com/v23.0/${env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization":
+          `Bearer ${env.WHATSAPP_ACCESS_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: phone,
+        type: "template",
+        template: {
+          name: "appointment_reminder",
+          language: {
+            code: "ar_EG"
+          },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  text: String(appointment.name || "عميلنا")
+                },
+                {
+                  type: "text",
+                  text: String(appointment.service || "")
+                },
+                {
+                  type: "text",
+                  text: String(appointment.date || "")
+                    .split("-")
+                    .reverse()
+                    .join("/")
+                },
+                {
+                  type: "text",
+                  text: String(appointment.time || "")
+                }
+              ]
+            }
+          ]
+        }
+      })
+    });
+
+    const result = await response.text();
 
     console.log(
-      "FATMA BAKR GLOW SPA reminder worker running"
+      "WhatsApp response:",
+      response.status,
+      result
     );
 
-    // Reminder system will be connected here.
+    return response.ok;
   }
-};
+
+  // Check every appointment
+  for (const appointment of appointments) {
+    if (!appointment || !appointment.date || !appointment.phone) {
+      continue;
+    }
+
+    // Number of days selected by the customer
+    const reminderDays = Number(
+      appointment.days ??
+      appointment.reminderDays ??
+      appointment.fDays ??
+      0
+    );
+
+    if (!reminderDays) {
+      continue;
+    }
+
+    // Calculate reminder date
+    const appointmentDate = new Date(
+      `${appointment.date}T12:00:00`
+    );
+
+    if (Number.isNaN(appointmentDate.getTime())) {
+      continue;
+    }
+
+    appointmentDate.setDate(
+      appointmentDate.getDate() - reminderDays
+    );
+
+    const reminderDate =
+      `${appointmentDate.getFullYear()}-${String(
+        appointmentDate.getMonth() + 1
+      ).padStart(2, "0")}-${String(
+        appointmentDate.getDate()
+      ).padStart(2, "0")}`;
+
+    if (reminderDate !== today) {
+      continue;
+    }
+
+    // Prevent duplicate messages
+    const reminderKey =
+      `spa_reminder_sent:${appointment.id}:${reminderDays}`;
+
+    const alreadySent =
+      await env.SPA_KV.get(reminderKey);
+
+    if (alreadySent) {
+      continue;
+    }
+
+    // Send around the appointment time.
+    const appointmentTime =
+      String(appointment.time || "10:00")
+        .trim();
+
+    const timeMatch =
+      appointmentTime.match(/^(\d{1,2}):(\d{2})/);
+
+    if (!timeMatch) {
+      continue;
+    }
+
+    const appointmentHour =
+      Number(timeMatch[1]);
+
+    const appointmentMinute =
+      Number(timeMatch[2]);
+
+    const appointmentMinutes =
+      appointmentHour * 60 +
+      appointmentMinute;
+
+    const currentMinutes =
+      currentHour * 60 +
+      currentMinute;
+
+    // Run within the same minute as the reminder time.
+    if (
+      Math.abs(
+        currentMinutes - appointmentMinutes
+      ) > 1
+    ) {
+      continue;
+    }
+
+    const sent =
+      await sendWhatsApp(appointment);
+
+    if (sent) {
+      await env.SPA_KV.put(
+        reminderKey,
+        JSON.stringify({
+          sentAt: new Date().toISOString(),
+          appointmentId: appointment.id
+        }),
+        {
+          expirationTtl: 60 * 60 * 24 * 90
+        }
+      );
+
+      console.log(
+        "Reminder sent:",
+        appointment.name,
+        appointment.date,
+        appointment.time
+      );
+    }
+  }
+}
