@@ -2,8 +2,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "fatma-bakr-glow-spa",
   "main": "src/worker.js",
- "compatibility_date": "2026-09-16",
+"compatibility_date": "2026-09-16",
 "keep_vars": true,
+"secrets": {
+  "required": ["SPA_PASSWORD"]
+},
 "assets": {
   "directory": "./assets",
   "run_worker_first": true
