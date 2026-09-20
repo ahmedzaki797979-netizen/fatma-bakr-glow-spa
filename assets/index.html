@@ -17,7 +17,7 @@
 <body>
 <div class="layout"><aside class="side"><div class="logo"><img src="logo.jpg"></div><div class="nav">
 <button class="active" data-go="home">⌂ &nbsp; الرئيسية</button><button data-go="booking">＋ &nbsp; إضافة حجز</button><button data-go="customers">♙ &nbsp; العملاء</button><button data-go="appointments">▣ &nbsp; المواعيد</button><button data-go="reminders">♧ &nbsp; التذكيرات</button><button data-go="services">✿ &nbsp; الخدمات</button><button data-go="reports">▥ &nbsp; التقارير</button><button data-go="settings">⚙ &nbsp; الإعدادات</button>
-</div><button class="logout" onclick="toast('تم الحفظ')">⇥ تسجيل خروج</button></aside>
+</div><button class="logout"onclick="fetch('/api/logout',{method:'POST'}).then(()=>location.reload())">⇥ تسجيل خروج</button></aside>
 <main class="main"><div class="top"><div class="brand"><b>FATMA BAKR</b> GLOW SPA</div><div class="actions"><button class="btn" onclick="toggleTheme()">🎨 تغيير الألوان</button><button class="btn" onclick="notifyPermission()">🔔</button><button class="btn" onclick="exportData()">⬇ نسخة</button></div></div>
 
 <section id="home" class="page active"><div class="hero"><h1>مرحباً بك في مركز فاطمة بكر جلو سبا</h1><p>إدارة الحجوزات، متابعة العميلات، وتذكير تلقائي بالمواعيد ✨</p></div>
