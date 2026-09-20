@@ -18,7 +18,18 @@
       "id": "c4687e109f3846baa1035ccf3326508d"
     }
   ],
-  "triggers": {
+   "triggers": {
     "crons": ["* * * * *"]
+  },
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": false
+    }
   }
 }
