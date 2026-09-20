@@ -701,7 +701,7 @@ export default {
     if (
       Math.abs(
         currentMinutes - appointmentMinutes
-      ) > 1
+      ) > 5
     ) {
       continue;
     }
