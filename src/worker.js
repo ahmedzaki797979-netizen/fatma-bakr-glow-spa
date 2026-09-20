@@ -624,12 +624,13 @@ export default {
     }
 
     // Number of days selected by the customer
-    const reminderDays = Number(
-      appointment.days ??
-      appointment.reminderDays ??
-      appointment.fDays ??
-      0
-    );
+ const reminderDays = Number(
+  appointment.reminder ??
+  appointment.days ??
+  appointment.reminderDays ??
+  appointment.fDays ??
+  0
+);
 
     if (!reminderDays) {
       continue;
