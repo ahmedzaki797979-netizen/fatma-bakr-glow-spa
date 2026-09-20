@@ -693,13 +693,16 @@ if (sent) {
     }
   );
 
-  console.log(
-    "Reminder sent:",
-    appointment.name,
-    appointment.date,
-    appointment.time
-  );
+console.log(
+  "Reminder sent:",
+  appointment.name,
+  appointment.date,
+  appointment.time
+);
 }
+}
+}
+};
 
    
      
