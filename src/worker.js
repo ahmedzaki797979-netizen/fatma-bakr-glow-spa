@@ -671,40 +671,35 @@ export default {
       continue;
     }
 
-    // Send around the appointment time.
-    const appointmentTime =
-      String(appointment.time || "10:00")
-        .trim();
+ console.log(
+  "Reminder date matched:",
+  appointment.name,
+  appointment.date,
+  appointment.time,
+  "today:",
+  today
+);
 
-    const timeMatch =
-      appointmentTime.match(/^(\d{1,2}):(\d{2})/);
-
-    if (!timeMatch) {
-      continue;
+const sent = await sendWhatsApp(appointment);
+if (sent) {
+  await env.SPA_KV.put(
+    reminderKey,
+    JSON.stringify({
+      sentAt: new Date().toISOString(),
+      appointmentId: appointment.id
+    }),
+    {
+      expirationTtl: 60 * 60 * 24 * 90
     }
+  );
 
-    const appointmentHour =
-      Number(timeMatch[1]);
-
-    const appointmentMinute =
-      Number(timeMatch[2]);
-
-    const appointmentMinutes =
-      appointmentHour * 60 +
-      appointmentMinute;
-
-    const currentMinutes =
-      currentHour * 60 +
-      currentMinute;
-
-    // Run within the same minute as the reminder time.
-    if (
-      Math.abs(
-        currentMinutes - appointmentMinutes
-      ) > 5
-    ) {
-      continue;
-    }
+  console.log(
+    "Reminder sent:",
+    appointment.name,
+    appointment.date,
+    appointment.time
+  );
+}
 
     const sent =
       await sendWhatsApp(appointment);
