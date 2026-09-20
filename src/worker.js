@@ -701,28 +701,7 @@ if (sent) {
   );
 }
 
-    const sent =
-      await sendWhatsApp(appointment);
+   
+     
 
-    if (sent) {
-      await env.SPA_KV.put(
-        reminderKey,
-        JSON.stringify({
-          sentAt: new Date().toISOString(),
-          appointmentId: appointment.id
-        }),
-        {
-          expirationTtl: 60 * 60 * 24 * 90
-        }
-      );
-
-      console.log(
-        "Reminder sent:",
-        appointment.name,
-        appointment.date,
-        appointment.time
-      );
-    }
-  }
-}
-};
+     
