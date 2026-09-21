@@ -636,30 +636,35 @@ export default {
       continue;
     }
 
-    // Calculate reminder date
-    const appointmentDate = new Date(
-      `${appointment.date}T12:00:00`
-    );
+  // Calculate reminder date using calendar dates only
+const [year, month, day] =
+  String(appointment.date).slice(0, 10).split("-").map(Number);
 
-    if (Number.isNaN(appointmentDate.getTime())) {
-      continue;
-    }
+if (!year || !month || !day) {
+  console.log("Invalid appointment date:", appointment.date);
+  continue;
+}
 
-    appointmentDate.setDate(
-      appointmentDate.getDate() - reminderDays
-    );
+const reminderDate = new Date(
+  Date.UTC(year, month - 1, day - reminderDays)
+).toISOString().slice(0, 10);
 
-    const reminderDate =
-      `${appointmentDate.getFullYear()}-${String(
-        appointmentDate.getMonth() + 1
-      ).padStart(2, "0")}-${String(
-        appointmentDate.getDate()
-      ).padStart(2, "0")}`;
+console.log(
+  "Reminder check:",
+  appointment.name,
+  "appointment:",
+  appointment.date,
+  "days:",
+  reminderDays,
+  "reminderDate:",
+  reminderDate,
+  "today:",
+  today
+);
 
-    if (reminderDate !== today) {
-      continue;
-    }
-
+if (reminderDate !== today) {
+  continue;
+}
     // Prevent duplicate messages
     const reminderKey =
       `spa_reminder_sent:${appointment.id}:${reminderDays}`;
