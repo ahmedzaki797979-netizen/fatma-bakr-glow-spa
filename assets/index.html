@@ -45,7 +45,7 @@
 <section id="reports" class="page"><div class="card"><div class="head"><h2>📊 التقارير</h2><button class="btn" onclick="exportData()">تصدير</button></div><div class="kpis"><div class="kpi">الحجوزات<b id="p1">0</b></div><div class="kpi">مؤكد<b id="p2">0</b></div><div class="kpi">حاضرت<b id="p3">0</b></div><div class="kpi">الإيرادات<b id="p4">0</b></div></div></div><div class="card"><h2>🏆 الخدمات الأكثر حجزاً</h2><div id="tops"></div></div></section>
 
 <section id="settings" class="page"><div class="card"><div class="head"><h2>⚙ إعدادات النظام</h2></div>
-<div class="kpi">WhatsApp Business API<b id="apiState">جاري التحقق/b><small>الإرسال التلقائي يحتاج بيانات Meta في الخادم.</small></div><br>
+<div class="kpi">WhatsApp Business API<b id="apiState">جاري التحقق/b><button class="btn" onclick="registerWhatsApp()">تسجيل رقم واتساب</button><small>الإرسال التلقائي يحتاج بيانات Meta في الخادم.</small></div><br>
 <div class="kpi">النسخ الاحتياطي<br><button class="btn" onclick="exportData()">تصدير</button> <button class="btn" onclick="document.getElementById('imp').click()">استيراد</button><input id="imp" type="file" accept=".json" hidden></div><br>
 <div class="kpi">الألوان<br><button class="btn" onclick="toggleTheme()">🎨 تغيير اللون</button></div></div></section>
 </main></div>
@@ -151,7 +151,37 @@ async function checkWhatsApp(){
   function notifyPermission(){if(!('Notification'in window))return toast('الإشعارات غير مدعومة');Notification.requestPermission().then(x=>toast(x==='granted'?'تم تفعيل الإشعارات':'لم يتم التفعيل'))}
 function exportData(){let b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='glow-spa-backup.json';a.click()}
 document.getElementById('imp').onchange=e=>{let r=new FileReader();r.onload=()=>{try{S=JSON.parse(r.result);save();render();toast('تم الاستيراد')}catch(_){toast('ملف غير صالح')}};r.readAsText(e.target.files[0])};
-async function init(){
+async function registerWhatsApp(){
+  const pin=prompt('اكتب PIN واتساب المكوّن من 6 أرقام');
+  if(!pin)return;
+
+  if(!/^\d{6}$/.test(pin)){
+    toast('الـ PIN لازم يكون 6 أرقام');
+    return;
+  }
+
+  try{
+    const r=await fetch('/api/register-whatsapp',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body:JSON.stringify({pin})
+    });
+
+    const j=await r.json();
+
+    if(!r.ok||!j.ok){
+      throw new Error(j.error||'فشل تسجيل الرقم');
+    }
+
+    toast('تم تسجيل رقم واتساب بنجاح ✅');
+    await checkWhatsApp();
+
+  }catch(e){
+    toast('فشل تسجيل واتساب: '+e.message);
+  }
+}
+  async function init(){
   await loadCloud();
   prepare();
   render();
