@@ -100,12 +100,39 @@ function serviceCard(s){return `<div class="service"><i>${s.icon}</i><b>${esc(s.
 function calendar(){let e=document.getElementById('calendar'),d=new Date(),f=new Date(d.getFullYear(),d.getMonth(),1),last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),st=(f.getDay()+6)%7;e.innerHTML=['الإ','الث','الأر','الخم','الج','الس','الأح'].map(x=>`<div class="h">${x}</div>`).join('');for(let i=0;i<st;i++)e.innerHTML+='<div></div>';for(let i=1;i<=last;i++){let x=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;e.innerHTML+=`<div class="${x===iso()?'today ':''}${S.appointments.some(a=>a.date===x)?'has':''}">${i}</div>`}}
 function renderCustomers(){let q=(document.getElementById('cq')?.value||'').toLowerCase(),m={};S.appointments.forEach(a=>(m[a.phone]??={name:a.name,phone:a.phone,a:[]}).a.push(a));let l=Object.values(m).filter(x=>(x.name+x.phone).toLowerCase().includes(q));document.getElementById('customersRows').innerHTML=l.map(x=>{let z=x.a.sort((a,b)=>b.date.localeCompare(a.date)),n=z.find(a=>a.nextDate&&a.nextDate>=iso());return `<tr><td>${esc(x.name)}</td><td>${esc(x.phone)}</td><td>${x.a.length}</td><td>${fmt(z[0].date)}</td><td>${n?fmt(n.nextDate):'—'}</td><td><button class="btn" onclick="wa('${esc(x.phone)}','${esc(x.name)}')">واتساب</button></td></tr>`}).join('')||'<tr><td colspan="6">لا توجد نتائج</td></tr>'}
 function renderAppointments(){let q=(document.getElementById('aq')?.value||'').toLowerCase(),f=document.getElementById('af')?.value||'',l=S.appointments.filter(a=>(a.name+a.phone+a.service).toLowerCase().includes(q)&&(!f||a.status===f)).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));document.getElementById('appRows').innerHTML=l.map(a=>`<tr><td>${fmt(a.date)}</td><td>${esc(a.name)}</td><td>${esc(a.service)}</td><td>${a.time}</td><td>${(+a.price||0).toLocaleString('ar-EG')}</td><td><span class="status ${cls(a.status)}">${esc(a.status)}</span></td><td><button class="btn" onclick="del(${a.id})">🗑</button></td></tr>`).join('')||'<tr><td colspan="7">لا توجد مواعيد</td></tr>'}
-function renderReminders(){let t=iso(),l=S.appointments.filter(a=>a.nextDate&&a.nextDate>=t).sort((a,b)=>a.nextDate.localeCompare(b.nextDate));document.getElementById('r1').textContent=l.filter(a=>a.nextDate===t).length;document.getElementById('r2').textContent=l.filter(a=>a.nextDate<=add(t,7)).length;document.getElementById('r3').textContent=l.filter(a=>a.nextDate<=add(t,30)).length;document.getElementById('r4').textContent=l.filter(a=>a.channel==='whatsapp').length;document.getElementById('allRem').innerHTML=l.length?l.map(a=>`<div class="rem"><span><b>${esc(a.name)}</b><br><small>${esc(a.service)} · ${fmt(a.nextDate)} · ${a.channel==='whatsapp'?'واتساب':'إشعار'}</small></span><button class="btn" onclick="wa('${esc(a.phone)}','${esc(a.name)}')">إرسال الآن</button></div>`).join(''):'لا توجد تذكيرات'}
+function renderReminders(){let t=iso(),l=S.appointments.filter(a=>a.nextDate&&a.nextDate>=t).sort((a,b)=>a.nextDate.localeCompare(b.nextDate));document.getElementById('r1').textContent=l.filter(a=>a.nextDate===t).length;document.getElementById('r2').textContent=l.filter(a=>a.nextDate<=add(t,7)).length;document.getElementById('r3').textContent=l.filter(a=>a.nextDate<=add(t,30)).length;document.getElementById('r4').textContent=l.filter(a=>a.channel==='whatsapp').length;document.getElementById('allRem').innerHTML=l.length?l.map(a=>`<div class="rem"><span><b>${esc(a.name)}</b><br><small>${esc(a.service)} · ${fmt(a.nextDate)} · ${a.channel==='whatsapp'?'واتساب':'إشعار'}</small></span><button class="btn"onclick="sendReminder('${esc(a.id)}')">إرسال الآن</button></div>`).join(''):'لا توجد تذكيرات'}
 function renderServices(){document.getElementById('serviceManager').innerHTML=S.services.map(serviceCard).join('')}
 function renderReports(){let a=S.appointments,c={};a.forEach(x=>c[x.service]=(c[x.service]||0)+1);document.getElementById('p1').textContent=a.length;document.getElementById('p2').textContent=a.filter(x=>x.status==='مؤكد').length;document.getElementById('p3').textContent=a.filter(x=>x.status==='حاضرت').length;document.getElementById('p4').textContent=a.reduce((q,x)=>q+(+x.price||0),0).toLocaleString('ar-EG');document.getElementById('tops').innerHTML=Object.entries(c).sort((a,b)=>b[1]-a[1]).map(x=>`<div class="rem"><span>${esc(x[0])}</span><b>${x[1]} حجز</b></div>`).join('')||'لا توجد بيانات'}
 document.getElementById('bookForm').onsubmit=e=>{e.preventDefault();let a={id:Date.now(),name:fName.value.trim(),phone:fPhone.value.trim(),service:fService.value,price:+fPrice.value||0,date:fDate.value,time:fTime.value,nextDate:fNext.value,reminder:+fDays.value,status:fStatus.value,channel:fChannel.value,notes:fNotes.value};if(!a.name||!a.phone)return toast('أكمل البيانات');S.appointments.push(a);save();toast('تم حفظ الحجز وتسجيل التذكير');go('home')}
 function prepare(){fDate.value=iso();fTime.value='18:00';fService.innerHTML=S.services.map(x=>`<option>${esc(x.name)}</option>`).join('')}
-function del(id){if(confirm('حذف الحجز؟')){S.appointments=S.appointments.filter(a=>a.id!==id);save();render();toast('تم الحذف')}}function call(p){location.href='tel:'+p}function wa(p,n){location.href='https://wa.me/'+p.replace(/^0/,'20')+'?text='+encodeURIComponent('أهلاً '+n+' 🌸 نذكرك بموعدك في FATMA BAKR GLOW SPA')}
+function del(id){if(confirm('حذف الحجز؟')){S.appointments=S.appointments.filter(a=>a.id!==id);save();render();toast('تم الحذف')}}function call(p){location.href='tel:'+p}async function sendReminder(id){
+  const a=S.appointments.find(x=>String(x.id)===String(id));
+
+  if(!a){
+    toast('الحجز غير موجود');
+    return;
+  }
+
+  try{
+    const r=await fetch('/api/send-whatsapp',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'same-origin',
+      body:JSON.stringify({appointment:a})
+    });
+
+    const j=await r.json();
+
+    if(!r.ok || !j.ok){
+      throw new Error(j.error || 'فشل إرسال واتساب');
+    }
+
+    toast('تم إرسال التذكير على واتساب بنجاح ✅');
+
+  }catch(e){
+    toast('فشل إرسال واتساب: '+e.message);
+  }
+}
 function newService(){let n=prompt('اسم الخدمة'),p=+prompt('السعر بالجنيه','0')||0;if(n){S.services.push({id:Date.now(),name:n,en:'SERVICE',icon:'✿',price:p});save();render();toast('تمت إضافة الخدمة')}}
 function toggleTheme(){document.getElementById('theme').classList.toggle('show')}function color(c){document.documentElement.style.setProperty('--a',c);localStorage.setItem('glowColor',c);document.getElementById('theme').classList.remove('show')}
 let gc=localStorage.getItem('glowColor');if(gc)color(gc);
