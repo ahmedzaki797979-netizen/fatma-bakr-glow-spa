@@ -363,7 +363,57 @@ export default {
     const authenticated =
       await isAuthenticated(request, env);
 
-   if (url.pathname === "/api/send-whatsapp" && request.method === "POST") {
+ if (url.pathname === "/api/register-whatsapp" && request.method === "POST") {
+  if (!authenticated) {
+    return json({ ok: false, error: "Unauthorized" }, 401);
+  }
+
+  try {
+    const { pin } = await request.json();
+
+    if (!pin || !/^\d{6}$/.test(String(pin))) {
+      return json({ ok: false, error: "PIN must be 6 digits" }, 400);
+    }
+
+    const response = await fetch(
+      `https://graph.facebook.com/v23.0/${env.WHATSAPP_PHONE_NUMBER_ID}/register`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${env.WHATSAPP_ACCESS_TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          pin: String(pin)
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return json({
+        ok: false,
+        error: result?.error?.message || "فشل تسجيل الرقم",
+        details: result
+      }, response.status);
+    }
+
+    return json({
+      ok: true,
+      message: "تم تسجيل رقم واتساب بنجاح",
+      result
+    });
+
+  } catch (error) {
+    return json({
+      ok: false,
+      error: error.message || "حدث خطأ"
+    }, 500);
+  }
+} 
+    if (url.pathname === "/api/send-whatsapp" && request.method === "POST") {
   if (!authenticated) {
     return json({ ok: false, error: "Unauthorized" }, 401);
   }
