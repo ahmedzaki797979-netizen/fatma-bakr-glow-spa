@@ -363,6 +363,81 @@ export default {
     const authenticated =
       await isAuthenticated(request, env);
 
+   if (url.pathname === "/api/send-whatsapp" && request.method === "POST") {
+  if (!authenticated) {
+    return json({ ok: false, error: "Unauthorized" }, 401);
+  }
+
+  try {
+    const { appointment } = await request.json();
+
+    if (!appointment || !appointment.phone) {
+      return json({ ok: false, error: "بيانات الحجز ناقصة" }, 400);
+    }
+
+    const phone = String(appointment.phone)
+      .replace(/\D/g, "")
+      .replace(/^0/, "20");
+
+    const date = appointment.date
+      ? String(appointment.date).split("-").reverse().join("/")
+      : "";
+
+    const response = await fetch(
+      `https://graph.facebook.com/v23.0/${env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${env.WHATSAPP_ACCESS_TOKEN}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: phone,
+          type: "template",
+          template: {
+            name: "appointment_reminder",
+            language: {
+              code: "ar_EG"
+            },
+            components: [
+              {
+                type: "body",
+                parameters: [
+                  { type: "text", text: String(appointment.name || "") },
+                  { type: "text", text: String(appointment.service || "") },
+                  { type: "text", text: date },
+                  { type: "text", text: String(appointment.time || "") }
+                ]
+              }
+            ]
+          }
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return json({
+        ok: false,
+        error: result?.error?.message || "فشل إرسال واتساب"
+      }, response.status);
+    }
+
+    return json({
+      ok: true,
+      message: "تم إرسال التذكير عبر واتساب",
+      result
+    });
+
+  } catch (error) {
+    return json({
+      ok: false,
+      error: error.message || "حدث خطأ أثناء الإرسال"
+    }, 500);
+  }
+}
     // ==============================
     // DATA API
     // ==============================
