@@ -477,25 +477,11 @@ export default {
           to: phone,
           type: "template",
           template: {
-            name: "appointment_reminder",
+            name: "hello_world",
             language: {
-              code: "ar_EG"
+              code: "en_US"
             },
-            components: [
-              {
-                type: "body",
-                parameters: [
-                  { type: "text", text: String(appointment.name || "") },
-                  { type: "text", text: String(appointment.service || "") },
-                  { type: "text", text: date },
-                  { type: "text", text: String(appointment.time || "") }
-                ]
-              }
-            ]
-          }
-        })
-      }
-    );
+          
 
     const result = await response.json();
 
