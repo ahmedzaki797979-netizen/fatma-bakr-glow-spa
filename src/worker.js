@@ -413,6 +413,37 @@ export default {
     }, 500);
   }
 } 
+   if (url.pathname === "/api/check-whatsapp" && request.method === "GET") {
+  if (!authenticated) {
+    return json({ ok: false, error: "Unauthorized" }, 401);
+  }
+
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v23.0/${env.WHATSAPP_PHONE_NUMBER_ID}?fields=id,display_phone_number,verified_name,code_verification_status,quality_rating,platform_type`,
+      {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${env.WHATSAPP_ACCESS_TOKEN}`
+        }
+      }
+    );
+
+    const result = await response.json();
+
+    return json({
+      ok: response.ok,
+      status: response.status,
+      result
+    }, response.ok ? 200 : response.status);
+
+  } catch (error) {
+    return json({
+      ok: false,
+      error: error.message
+    }, 500);
+  }
+}
     if (url.pathname === "/api/send-whatsapp" && request.method === "POST") {
   if (!authenticated) {
     return json({ ok: false, error: "Unauthorized" }, 401);
