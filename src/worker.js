@@ -476,11 +476,14 @@ export default {
           messaging_product: "whatsapp",
           to: phone,
           type: "template",
-          template: {
-            name: "hello_world",
-            language: {
-              code: "en_US"
-            },
+         template: {
+  name: "hello_world",
+  language: {
+    code: "en_US"
+  }
+}
+})
+});
           
 
     const result = await response.json();
