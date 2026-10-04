@@ -477,9 +477,9 @@ export default {
           to: phone,
           type: "template",
          template: {
-  name: "hello_world",
+ name: "appointment_reminder",
   language: {
-    code: "en_US"
+ code: "ar_EG"
   }
 }
 })
