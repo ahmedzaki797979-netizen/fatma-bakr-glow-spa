@@ -123,13 +123,14 @@ function prepare(){fDate.value=iso();fTime.value='18:00';fService.innerHTML=S.se
 
   const time=prompt('الوقت:',a.time);
   if(time===null)return;
-
+const nextDate=prompt('الجلسة التالية:',a.nextDate||'');
+if(nextDate===null)return;
   a.name=name.trim();
   a.phone=phone.trim();
   a.service=service.trim();
   a.date=date.trim();
   a.time=time.trim();
-
+a.nextDate=nextDate.trim();
   save();
   render();
   toast('تم تعديل الحجز بنجاح ✅');
