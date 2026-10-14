@@ -221,5 +221,10 @@ async function registerWhatsApp(){
  await checkWhatsApp(); 
 }
 
-init();
+window.wa = function(phone, name) {
+    let p = phone.startsWith('0') ? '2' + phone : phone;
+    let msg = `أهلاً يا ${name}، بنفكرك بميعاد جلسة الليزر بتاعتك في فاطمة بكر جلو سبا، في انتظارك!`;
+    window.open(`https://wa.me/${p}?text=${encodeURIComponent(msg)}`, '_blank');
+};
+  init();
 </script></body></html>
