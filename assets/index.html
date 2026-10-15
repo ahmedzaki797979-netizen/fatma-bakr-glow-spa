@@ -53,16 +53,24 @@
 html, body, main, .page { background-color: transparent !important; }
 body { background: linear-gradient(135deg, var(--c, #ec258d) 0%, #000000 100%) !important; background-attachment: fixed !important; min-height: 100vh !important; }
 
-/* 2. التأثير الزجاجي الفخم */
+/* 2. التأثير الزجاجي الفخم للبطاقات والجداول */
 .card, table, .wrap, .search { background: rgba(0, 0, 0, 0.4) !important; backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; box-shadow: 0 8px 32px 0 rgba(0,0,0,0.5) !important; border-radius: 12px !important; }
 th { background: rgba(0,0,0,0.6) !important; }
 
-/* 3. باليتة الألوان الجديدة - هتندمج فوق على اليمين */
+/* 3. تلوين القائمة الجانبية (السايدبار) وإضافة تأثير الزجاج عشان تاخد نفس اللون */
+aside, nav, .sidebar { 
+    background: rgba(0, 0, 0, 0.3) !important; 
+    backdrop-filter: blur(15px) !important; 
+    -webkit-backdrop-filter: blur(15px) !important; 
+    border-left: 1px solid rgba(255, 255, 255, 0.1) !important; 
+}
+
+/* باليتة الألوان الجديدة - تصميم أنيق يتماشى مع الصفحة */
 .magic-color { 
     display: inline-flex; gap: 10px; align-items: center; 
-    background: rgba(0,0,0,0.5); padding: 5px 15px; 
+    background: rgba(0,0,0,0.5); padding: 8px 15px; 
     border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); 
-    color: white; font-weight: bold; margin-right: 10px;
+    color: white; font-weight: bold; width: fit-content;
 }
 .magic-color input { cursor: pointer; border: none; border-radius: 50%; width: 28px; height: 28px; padding: 0; background: transparent; }
 
@@ -71,58 +79,48 @@ th { background: rgba(0,0,0,0.6) !important; }
 @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
 </style>
 
-<!-- حاوية الزرار المخفية مؤقتاً لحد ما يتنقل مكانه -->
-<div id="magicContainer" style="display: none;">
-    <div class="magic-color">
-        <span>🎨 لون اللوحة:</span>
-        <input type="color" value="#ec258d" oninput="document.documentElement.style.setProperty('--c', this.value); document.body.style.setProperty('background', 'linear-gradient(135deg, ' + this.value + ' 0%, #000000 100%)', 'important');">
-    </div>
-</div>
-
 <script>
-// كود ذكي عشان ينقل زرار الألوان الجديد مكان القديم بالظبط
+// إخفاء زرار الألوان القديم عشان الزحمة
 setTimeout(() => {
-    let allElements = document.querySelectorAll('*');
-    let oldBtnContainer = null;
-    
-    // بندور على الزرار القديم
-    for(let el of allElements) {
-        if(el.innerText && el.innerText.includes('تغيير الألوان 🎨') && el.tagName !== 'SCRIPT') {
-            oldBtnContainer = el.parentElement;
-            el.style.display = 'none'; // نخفي القديم عشان الزحمة
-            break;
-        }
-    }
-    
-    let magicDiv = document.querySelector('.magic-color');
-    if(oldBtnContainer && magicDiv) {
-        oldBtnContainer.style.display = 'flex';
-        oldBtnContainer.style.alignItems = 'center';
-        oldBtnContainer.appendChild(magicDiv); // نحط الجديد مكانه
-    } else if (magicDiv) {
-        // لو ملقاش القديم، يحطه فوق على اليمين بحيث يختفي مع النزول لتحت
-        magicDiv.style.position = 'absolute';
-        magicDiv.style.top = '20px';
-        magicDiv.style.right = '200px';
-        document.body.appendChild(magicDiv);
-    }
-}, 500);
+    document.querySelectorAll('button, div, span').forEach(e => {
+        if(e.innerText && e.innerText.includes('تغيير الألوان 🎨')) { e.style.display = 'none'; }
+    });
+}, 100);
 
-// التارجت والـ VIP الشامل
+// التارجت والـ VIP وزرار الألوان الشامل
 setInterval(() => {
     let mainDiv = document.querySelector('main');
-    if(mainDiv && !document.getElementById('globalTarget') && typeof S !== 'undefined') {
-        let tDiv = document.createElement('div');
-        tDiv.id = 'globalTarget';
-        tDiv.innerHTML = `<div style="background:rgba(0,0,0,0.6); margin:15px; padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); box-shadow:0 5px 15px rgba(0,0,0,0.5);">
+    
+    // وضع زرار الألوان وشريط التارجت بشكل ثابت وجزء من الصفحة
+    if(mainDiv && !document.getElementById('topControlsContainer') && typeof S !== 'undefined') {
+        let topDiv = document.createElement('div');
+        topDiv.id = 'topControlsContainer';
+        topDiv.style.cssText = 'margin: 15px; display: flex; flex-direction: column; gap: 15px;';
+        
+        // زرار الألوان (هيبقى مكانه ثابت ومش بيتحرك مع الماوس)
+        let colorDiv = document.createElement('div');
+        colorDiv.innerHTML = `
+            <div class="magic-color">
+                <span>🎨 لون اللوحة:</span>
+                <input type="color" value="#ec258d" oninput="document.documentElement.style.setProperty('--c', this.value); document.body.style.setProperty('background', 'linear-gradient(135deg, ' + this.value + ' 0%, #000000 100%)', 'important');">
+            </div>
+        `;
+        
+        // شريط التارجت
+        let targetDiv = document.createElement('div');
+        targetDiv.innerHTML = `<div style="background:rgba(0,0,0,0.6); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); box-shadow:0 5px 15px rgba(0,0,0,0.5);">
             <h3 style="color:#fff; margin:0 0 10px 0; text-shadow: 1px 1px 2px #000;">🎯 تارجت اليوم (5000 ج)</h3>
             <div style="width:100%; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
                 <div id="targetFill" style="height:28px; background:linear-gradient(90deg, #00c6ff, #0072ff); width:0%; text-align:center; color:#fff; font-weight:bold; line-height:28px; font-size:14px; transition:1s;">0%</div>
             </div>
         </div>`;
-        mainDiv.insertBefore(tDiv, mainDiv.firstChild);
+        
+        topDiv.appendChild(colorDiv);
+        topDiv.appendChild(targetDiv);
+        mainDiv.insertBefore(topDiv, mainDiv.firstChild); // ده هيحطهم في أول الصفحة بأدب ونظام
     }
 
+    // تحديث التارجت
     if(typeof S !== 'undefined') {
         let target = 5000;
         let today = new Date().toISOString().split('T')[0];
@@ -136,6 +134,7 @@ setInterval(() => {
         }
     }
 
+    // نظام الـ VIP
     let rows = document.querySelectorAll('#appRows tr');
     rows.forEach(r => {
         let nameTd = r.querySelector('td:nth-child(2)');
