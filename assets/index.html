@@ -47,64 +47,91 @@
 <div class="kpi">النسخ الاحتياطي<br><button class="btn" onclick="exportData()">تصدير</button> <button class="btn" onclick="document.getElementById('imp').click()">استيراد</button><input id="imp" type="file" accept=".json" hidden></div><br>
 <div class="kpi">الألوان<br><button class="btn" onclick="toggleTheme()">🎨 تغيير اللون</button></div></div></section>
 </main></div>
-<!-- بداية تحديثات الدلع 🚀 -->
+<!-- بداية الدلع الشامل 🚀 -->
 <style>
-/* كسر حماية الخلفية وتفعيل الشياكة الإجبارية */
+/* 1. السيطرة على الشاشة السوداء بالكامل */
+html, body, main, .page {
+    background-color: transparent !important; /* نلغي أي سواد قديم */
+}
 body {
-    background: linear-gradient(-45deg, var(--c, #ec258d), #1a1a1d, #2b0a18, #4a0e2e) !important;
-    background-size: 400% 400% !important;
-    animation: gradientBg 15s ease infinite !important;
+    /* خلفية كاملة متدرجة من اللون اللي هتختاره للأسود الشيك */
+    background: linear-gradient(135deg, var(--c, #ec258d) 0%, #000000 100%) !important;
+    background-attachment: fixed !important; /* عشان تغطي الشاشة كلها */
+    min-height: 100vh !important;
 }
-@keyframes gradientBg { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
 
-/* التأثير الزجاجي الشفاف الإجباري */
-.card, .page .card, table, .wrap, .search {
-    background: rgba(0, 0, 0, 0.35) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
+/* 2. التأثير الزجاجي الفخم (الشفافية) */
+.card, table, .wrap, .search {
+    background: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
     border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.4) !important;
+    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.5) !important;
+    border-radius: 12px !important;
 }
+th { background: rgba(0,0,0,0.6) !important; }
 
-/* التارجت والـ VIP */
-.vip-badge { background: linear-gradient(90deg, #ffd700, #ffaa00); color: #000; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-top: 5px; display: inline-block; box-shadow: 0 0 10px rgba(255,215,0,0.5); animation: pulse 2s infinite; }
-@keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.1);} 100% {transform: scale(1);} }
-#targetBar { width: 100%; background: rgba(255,255,255,0.1); border-radius: 15px; margin-bottom: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); }
-#targetFill { height: 30px; background: linear-gradient(90deg, #00c6ff, #0072ff); width: 0%; transition: width 1.5s ease-in-out; text-align: center; color: white; font-weight: bold; line-height: 30px; font-size: 15px; text-shadow: 1px 1px 2px #000;}
+/* 3. إخفاء زرار الألوان القديم عشان التداخل */
+.theme { display: none !important; }
 
-/* باليتة الألوان العائمة */
-.magic-color { position: fixed; top: 15px; left: 15px; z-index: 9999; display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.6); padding: 8px 15px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.2); color: white; font-weight: bold; backdrop-filter: blur(5px); }
-.magic-color input { cursor: pointer; border: none; outline: none; border-radius: 50%; width: 30px; height: 30px; padding: 0; background: transparent; }
+/* باليتة الألوان الجديدة - مكان آمن تحت */
+.magic-color { 
+    position: fixed; bottom: 80px; left: 15px; z-index: 9999; 
+    display: flex; gap: 10px; align-items: center; 
+    background: rgba(0,0,0,0.7); padding: 8px 15px; 
+    border-radius: 25px; border: 1px solid rgba(255,255,255,0.2); 
+    color: white; font-weight: bold; backdrop-filter: blur(10px); 
+}
+.magic-color input { cursor: pointer; border: none; border-radius: 50%; width: 35px; height: 35px; padding: 0; background: transparent; }
+
+/* تصميمات التارجت والـ VIP */
+.vip-badge { background: linear-gradient(90deg, #ffd700, #ffaa00); color: #000; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-top: 4px; display: inline-block; box-shadow: 0 0 8px rgba(255,215,0,0.6); animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
 </style>
 
-<!-- زرار الألوان (التعديل اللايف) -->
+<!-- زرار الألوان الجديد -->
 <div class="magic-color">
     <span>🎨 لون اللوحة:</span>
-    <input type="color" value="#ec258d" oninput="document.documentElement.style.setProperty('--c', this.value); document.body.style.setProperty('background', 'linear-gradient(-45deg, ' + this.value + ', #1a1a1d, #2b0a18, #4a0e2e)', 'important');">
+    <input type="color" value="#ec258d" oninput="document.documentElement.style.setProperty('--c', this.value); document.body.style.setProperty('background', 'linear-gradient(135deg, ' + this.value + ' 0%, #000000 100%)', 'important');">
 </div>
 
 <script>
-function updateTarget() {
-    let target = 5000;
-    let today = new Date().toISOString().split('T')[0];
-    let todayTotal = S.appointments.filter(a => a.date === today && a.status === 'حضرت').reduce((sum, a) => sum + Number(a.price||0), 0);
-    let perc = Math.min((todayTotal / target) * 100, 100);
-    let tb = document.getElementById('targetFill');
-    if(tb) {
-        tb.style.width = perc + '%';
-        tb.innerText = todayTotal + ' ج / ' + target + ' ج';
-        if(perc >= 100) tb.innerText = '🎉 التارجت اكتمل! عاش يا وحش (' + todayTotal + ' ج)';
-    }
-}
+// التارجت والـ VIP الشامل
 setInterval(() => {
-    let homeCard = document.querySelector('#home .card');
-    if(homeCard && !document.getElementById('targetBar') && typeof S !== 'undefined') {
-        let div = document.createElement('div');
-        div.innerHTML = `<h3 style="margin-bottom:10px; color:#fff; text-shadow: 1px 1px 2px #000;">🎯 تارجت اليوم:</h3><div id="targetBar"><div id="targetFill">0%</div></div>`;
-        homeCard.insertBefore(div, homeCard.firstChild);
+    // إخفاء الزرار القديم بالإجبار لو لسه موجود
+    document.querySelectorAll('button, div, span').forEach(e => {
+        if(e.innerText && e.innerText.includes('تغيير الألوان 🎨')) { e.style.display = 'none'; }
+    });
+
+    // 4. شريط التارجت الدائم (هيظهر فوق في كل الصفحات)
+    let mainDiv = document.querySelector('main');
+    if(mainDiv && !document.getElementById('globalTarget') && typeof S !== 'undefined') {
+        let tDiv = document.createElement('div');
+        tDiv.id = 'globalTarget';
+        tDiv.innerHTML = `<div style="background:rgba(0,0,0,0.6); margin:15px; padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); box-shadow:0 5px 15px rgba(0,0,0,0.5);">
+            <h3 style="color:#fff; margin:0 0 10px 0; text-shadow: 1px 1px 2px #000;">🎯 تارجت اليوم (5000 ج)</h3>
+            <div style="width:100%; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+                <div id="targetFill" style="height:28px; background:linear-gradient(90deg, #00c6ff, #0072ff); width:0%; text-align:center; color:#fff; font-weight:bold; line-height:28px; font-size:14px; transition:1s;">0%</div>
+            </div>
+        </div>`;
+        mainDiv.insertBefore(tDiv, mainDiv.firstChild);
     }
-    updateTarget();
-    
+
+    // تحديث التارجت
+    if(typeof S !== 'undefined') {
+        let target = 5000;
+        let today = new Date().toISOString().split('T')[0];
+        let todayTotal = S.appointments.filter(a => a.date === today && a.status === 'حضرت').reduce((sum, a) => sum + Number(a.price||0), 0);
+        let perc = Math.min((todayTotal / target) * 100, 100);
+        let tb = document.getElementById('targetFill');
+        if(tb) {
+            tb.style.width = perc + '%';
+            tb.innerText = todayTotal + ' ج / ' + target + ' ج';
+            if(perc >= 100) { tb.innerText = '🎉 التارجت اكتمل! (' + todayTotal + ' ج)'; tb.style.background = 'linear-gradient(90deg, #11998e, #38ef7d)'; }
+        }
+    }
+
+    // 5. نظام الـ VIP
     let rows = document.querySelectorAll('#appRows tr');
     rows.forEach(r => {
         let nameTd = r.querySelector('td:nth-child(2)');
@@ -118,7 +145,7 @@ setInterval(() => {
     });
 }, 1000);
 </script>
-<!-- نهاية تحديثات الدلع 🚀 -->
+<!-- نهاية الدلع الشامل 🚀 -->
 <nav class="mobile"><button onclick="go('home')">⌂<br>الرئيسية</button><button onclick="go('appointments')">▣<br>المواعيد</button><button class="add" onclick="go('booking')">＋</button><button onclick="go('customers')">♙<br>العملاء</button><button onclick="go('reminders')">♧<br>التذكير</button></nav>
 <div class="theme" id="theme"><b>اختار اللون</b><br><button class="sw" style="background:#ec258d" onclick="color('#ec258d')"></button><button class="sw" style="background:#00b7ff" onclick="color('#00b7ff')"></button><button class="sw" style="background:#7c3aed" onclick="color('#7c3aed')"></button><button class="sw" style="background:#19c37d" onclick="color('#19c37d')"></button><button class="sw" style="background:#e9a52b" onclick="color('#e9a52b')"></button></div>
 <div class="toast" id="toast"></div>
