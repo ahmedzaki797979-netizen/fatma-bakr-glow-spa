@@ -47,7 +47,106 @@
 <div class="kpi">النسخ الاحتياطي<br><button class="btn" onclick="exportData()">تصدير</button> <button class="btn" onclick="document.getElementById('imp').click()">استيراد</button><input id="imp" type="file" accept=".json" hidden></div><br>
 <div class="kpi">الألوان<br><button class="btn" onclick="toggleTheme()">🎨 تغيير اللون</button></div></div></section>
 </main></div>
+<!-- بداية تحديثات الدلع 🚀 -->
+<style>
+/* 1. خلفية متحركة (شياكة الآيفون) */
+body {
+    background: linear-gradient(-45deg, var(--main-color, #ec258d), #2b0a18, #1a1a1d, #4a0e2e) !important;
+    background-size: 400% 400% !important;
+    animation: gradientBg 15s ease infinite !important;
+}
+@keyframes gradientBg {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
+/* 2. تأثير الزجاج الشفاف (Glassmorphism) */
+.card, .page .card, table, .wrap {
+    background: rgba(0, 0, 0, 0.45) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.4);
+    border-radius: 15px;
+}
+input, select, textarea {
+    background: rgba(255, 255, 255, 0.9) !important;
+    color: #000 !important;
+}
+
+/* تصميم التارجت و الـ VIP */
+.vip-badge {
+    background: linear-gradient(90deg, #ffd700, #ffaa00);
+    color: #000; padding: 4px 8px; border-radius: 12px;
+    font-size: 11px; font-weight: bold; margin-top: 5px; display: inline-block;
+    box-shadow: 0 0 10px rgba(255,215,0,0.5);
+    animation: pulse 2s infinite;
+}
+@keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.1);} 100% {transform: scale(1);} }
+
+#targetBar { width: 100%; background: rgba(255,255,255,0.1); border-radius: 15px; margin-bottom: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.2); }
+#targetFill { height: 30px; background: linear-gradient(90deg, #00c6ff, #0072ff); width: 0%; transition: width 1.5s ease-in-out; text-align: center; color: white; font-weight: bold; line-height: 30px; font-size: 15px; text-shadow: 1px 1px 2px #000;}
+
+/* باليتة الألوان العائمة */
+.magic-color {
+    position: fixed; top: 15px; left: 15px; z-index: 1000;
+    display: flex; gap: 10px; align-items: center;
+    background: rgba(0,0,0,0.6); padding: 8px 15px;
+    border-radius: 25px; backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2); color: white; font-weight: bold;
+}
+.magic-color input { cursor: pointer; border: none; outline: none; border-radius: 50%; width: 30px; height: 30px; padding: 0; background: transparent !important; }
+</style>
+
+<!-- زرار الألوان السحري -->
+<div class="magic-color">
+    <span>🎨 غير لون اللوحة:</span>
+    <input type="color" id="magicColor" value="#ec258d" onchange="document.documentElement.style.setProperty('--main-color', this.value);">
+</div>
+
+<script>
+// 3. نظام التارجت اليومي
+function updateTarget() {
+    let target = 5000; // تقدر تغير الرقم ده لتارجت السبا المادي
+    let today = new Date().toISOString().split('T')[0];
+    let todayTotal = S.appointments.filter(a => a.date === today && a.status === 'حضرت').reduce((sum, a) => sum + Number(a.price||0), 0);
+    let perc = Math.min((todayTotal / target) * 100, 100);
+    let tb = document.getElementById('targetFill');
+    if(tb) {
+        tb.style.width = perc + '%';
+        tb.innerText = todayTotal + ' ج / ' + target + ' ج';
+        if(perc >= 100) tb.innerText = '🎉 التارجت اكتمل! عاش يا وحش (' + todayTotal + ' ج)';
+    }
+}
+
+// إضافة التارجت في الرئيسية أوتوماتيك
+setInterval(() => {
+    let homeCard = document.querySelector('#home .card');
+    if(homeCard && !document.getElementById('targetBar') && typeof S !== 'undefined') {
+        let div = document.createElement('div');
+        div.innerHTML = `<h3 style="margin-bottom:10px; color:#fff;">🎯 تارجت اليوم:</h3><div id="targetBar"><div id="targetFill">0%</div></div>`;
+        homeCard.insertBefore(div, homeCard.firstChild);
+    }
+    updateTarget();
+}, 1000);
+
+// 4. نظام ولاء العملاء VIP 
+setInterval(() => {
+    let rows = document.querySelectorAll('#appRows tr');
+    rows.forEach(r => {
+        let nameTd = r.querySelector('td:nth-child(2)');
+        if(nameTd && !nameTd.innerHTML.includes('vip-badge')) {
+            let name = nameTd.innerText.split('👑')[0].trim();
+            let visits = S.appointments.filter(a => a.name === name && a.status === 'حضرت').length;
+            if(visits >= 2) { // أي عميلة جات مرتين أو أكتر تاخد بادج VIP
+                nameTd.innerHTML = `${name} <br><span class="vip-badge">👑 VIP (${visits} زيارات)</span>`;
+            }
+        }
+    });
+}, 1000);
+</script>
+<!-- نهاية تحديثات الدلع 🚀 -->
 <nav class="mobile"><button onclick="go('home')">⌂<br>الرئيسية</button><button onclick="go('appointments')">▣<br>المواعيد</button><button class="add" onclick="go('booking')">＋</button><button onclick="go('customers')">♙<br>العملاء</button><button onclick="go('reminders')">♧<br>التذكير</button></nav>
 <div class="theme" id="theme"><b>اختار اللون</b><br><button class="sw" style="background:#ec258d" onclick="color('#ec258d')"></button><button class="sw" style="background:#00b7ff" onclick="color('#00b7ff')"></button><button class="sw" style="background:#7c3aed" onclick="color('#7c3aed')"></button><button class="sw" style="background:#19c37d" onclick="color('#19c37d')"></button><button class="sw" style="background:#e9a52b" onclick="color('#e9a52b')"></button></div>
 <div class="toast" id="toast"></div>
