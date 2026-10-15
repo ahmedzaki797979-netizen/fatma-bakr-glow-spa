@@ -53,25 +53,15 @@
 html, body, main, .page { background-color: transparent !important; }
 body { background: linear-gradient(135deg, var(--c, #ec258d) 0%, #000000 100%) !important; background-attachment: fixed !important; min-height: 100vh !important; }
 
-/* 2. التأثير الزجاجي الفخم للبطاقات والجداول */
+/* 2. التأثير الزجاجي الفخم */
 .card, table, .wrap, .search { background: rgba(0, 0, 0, 0.4) !important; backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; box-shadow: 0 8px 32px 0 rgba(0,0,0,0.5) !important; border-radius: 12px !important; }
 th { background: rgba(0,0,0,0.6) !important; }
 
-/* 3. تلوين القائمة الجانبية (السايدبار) وإضافة تأثير الزجاج عشان تاخد نفس اللون */
-aside, nav, .sidebar { 
-    background: rgba(0, 0, 0, 0.3) !important; 
-    backdrop-filter: blur(15px) !important; 
-    -webkit-backdrop-filter: blur(15px) !important; 
-    border-left: 1px solid rgba(255, 255, 255, 0.1) !important; 
-}
+/* 3. تلوين القائمة الجانبية */
+aside, nav, .sidebar { background: rgba(0, 0, 0, 0.3) !important; backdrop-filter: blur(15px) !important; -webkit-backdrop-filter: blur(15px) !important; border-left: 1px solid rgba(255, 255, 255, 0.1) !important; }
 
-/* باليتة الألوان الجديدة - تصميم أنيق يتماشى مع الصفحة */
-.magic-color { 
-    display: inline-flex; gap: 10px; align-items: center; 
-    background: rgba(0,0,0,0.5); padding: 8px 15px; 
-    border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); 
-    color: white; font-weight: bold; width: fit-content;
-}
+/* باليتة الألوان الجديدة */
+.magic-color { display: inline-flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); color: white; font-weight: bold; width: fit-content; }
 .magic-color input { cursor: pointer; border: none; border-radius: 50%; width: 28px; height: 28px; padding: 0; background: transparent; }
 
 /* التارجت والـ VIP */
@@ -80,44 +70,27 @@ aside, nav, .sidebar {
 </style>
 
 <script>
-// إخفاء زرار الألوان القديم عشان الزحمة
-setTimeout(() => {
-    document.querySelectorAll('button, div, span').forEach(e => {
-        if(e.innerText && e.innerText.includes('تغيير الألوان 🎨')) { e.style.display = 'none'; }
-    });
-}, 100);
+// إخفاء زرار الألوان القديم
+setTimeout(() => { document.querySelectorAll('button, div, span').forEach(e => { if(e.innerText && e.innerText.includes('تغيير الألوان 🎨')) { e.style.display = 'none'; } }); }, 100);
 
-// التارجت والـ VIP وزرار الألوان الشامل
 setInterval(() => {
     let mainDiv = document.querySelector('main');
     
-    // وضع زرار الألوان وشريط التارجت بشكل ثابت وجزء من الصفحة
+    // شريط التارجت وزرار الألوان الثابت
     if(mainDiv && !document.getElementById('topControlsContainer') && typeof S !== 'undefined') {
         let topDiv = document.createElement('div');
         topDiv.id = 'topControlsContainer';
         topDiv.style.cssText = 'margin: 15px; display: flex; flex-direction: column; gap: 15px;';
         
-        // زرار الألوان (هيبقى مكانه ثابت ومش بيتحرك مع الماوس)
         let colorDiv = document.createElement('div');
-        colorDiv.innerHTML = `
-            <div class="magic-color">
-                <span>🎨 لون اللوحة:</span>
-                <input type="color" value="#ec258d" oninput="document.documentElement.style.setProperty('--c', this.value); document.body.style.setProperty('background', 'linear-gradient(135deg, ' + this.value + ' 0%, #000000 100%)', 'important');">
-            </div>
-        `;
+        colorDiv.innerHTML = `<div class="magic-color"><span>🎨 لون اللوحة:</span><input type="color" value="#ec258d" oninput="document.documentElement.style.setProperty('--c', this.value); document.body.style.setProperty('background', 'linear-gradient(135deg, ' + this.value + ' 0%, #000000 100%)', 'important');"></div>`;
         
-        // شريط التارجت
         let targetDiv = document.createElement('div');
-        targetDiv.innerHTML = `<div style="background:rgba(0,0,0,0.6); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); box-shadow:0 5px 15px rgba(0,0,0,0.5);">
-            <h3 style="color:#fff; margin:0 0 10px 0; text-shadow: 1px 1px 2px #000;">🎯 تارجت اليوم (5000 ج)</h3>
-            <div style="width:100%; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
-                <div id="targetFill" style="height:28px; background:linear-gradient(90deg, #00c6ff, #0072ff); width:0%; text-align:center; color:#fff; font-weight:bold; line-height:28px; font-size:14px; transition:1s;">0%</div>
-            </div>
-        </div>`;
+        targetDiv.innerHTML = `<div style="background:rgba(0,0,0,0.6); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.2); backdrop-filter:blur(10px); box-shadow:0 5px 15px rgba(0,0,0,0.5);"><h3 style="color:#fff; margin:0 0 10px 0; text-shadow: 1px 1px 2px #000;">🎯 تارجت اليوم (5000 ج)</h3><div style="width:100%; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;"><div id="targetFill" style="height:28px; background:linear-gradient(90deg, #00c6ff, #0072ff); width:0%; text-align:center; color:#fff; font-weight:bold; line-height:28px; font-size:14px; transition:1s;">0%</div></div></div>`;
         
         topDiv.appendChild(colorDiv);
         topDiv.appendChild(targetDiv);
-        mainDiv.insertBefore(topDiv, mainDiv.firstChild); // ده هيحطهم في أول الصفحة بأدب ونظام
+        mainDiv.insertBefore(topDiv, mainDiv.firstChild);
     }
 
     // تحديث التارجت
@@ -141,11 +114,48 @@ setInterval(() => {
         if(nameTd && !nameTd.innerHTML.includes('vip-badge')) {
             let name = nameTd.innerText.split('👑')[0].trim();
             let visits = S.appointments.filter(a => a.name === name && a.status === 'حضرت').length;
-            if(visits >= 2) {
-                nameTd.innerHTML = `${name} <br><span class="vip-badge">👑 VIP (${visits} زيارات)</span>`;
-            }
+            if(visits >= 2) { nameTd.innerHTML = `${name} <br><span class="vip-badge">👑 VIP (${visits} زيارات)</span>`; }
         }
     });
+
+    // الميزة الجديدة: تسلسل العملاء وعداد الإجمالي 🆕
+    let custSection = document.getElementById('customers');
+    if (custSection) {
+        let headH2 = custSection.querySelector('.head h2');
+        let cusRows = custSection.querySelectorAll('table tbody tr');
+        let visibleRows = Array.from(cusRows).filter(r => r.style.display !== 'none');
+        
+        // 1. إضافة الإجمالي في العنوان
+        if (headH2) {
+            if (!headH2.querySelector('#custCounterBadge')) {
+                headH2.innerHTML = `👥 العملاء <span id="custCounterBadge" style="font-size: 15px; background: linear-gradient(90deg, #ff9966, #ff5e62); color: #fff; padding: 4px 12px; border-radius: 12px; margin-right: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">العدد: ${visibleRows.length} عميل</span>`;
+            } else {
+                headH2.querySelector('#custCounterBadge').innerText = `العدد: ${visibleRows.length} عميل`;
+            }
+        }
+
+        // 2. إضافة عمود "م" في رأس الجدول
+        let theadTr = custSection.querySelector('table thead tr');
+        if (theadTr && !theadTr.querySelector('.counter-th')) {
+            let th = document.createElement('th');
+            th.className = 'counter-th';
+            th.innerText = 'م';
+            th.style.width = '40px';
+            theadTr.insertBefore(th, theadTr.firstChild);
+        }
+
+        // 3. ترقيم الصفوف
+        visibleRows.forEach((row, index) => {
+            if (!row.querySelector('.counter-td')) {
+                let td = document.createElement('td');
+                td.className = 'counter-td';
+                td.style.fontWeight = 'bold';
+                td.style.color = '#ffc107'; // رقم بلون ذهبي مميز
+                row.insertBefore(td, row.firstChild);
+            }
+            row.querySelector('.counter-td').innerText = index + 1;
+        });
+    }
 }, 1000);
 </script>
 <!-- نهاية الدلع الشامل 🚀 -->
